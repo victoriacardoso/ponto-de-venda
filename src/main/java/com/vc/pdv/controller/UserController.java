@@ -1,40 +1,39 @@
 package com.vc.pdv.controller;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.vc.pdv.model.UserModel;
-import com.vc.pdv.repository.UserRepository;
+import com.vc.pdv.services.UserService;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
-
 
 @Controller
 @RequestMapping("/user")
 public class UserController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @GetMapping()
     public ResponseEntity<?> getAll() {
-        return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(userService.findAll(), HttpStatus.OK);
     }
 
     @PostMapping()
     public ResponseEntity<?> post(@RequestBody UserModel userModel) {
         try {
             userModel.setEnabled(true);
-            return new ResponseEntity<>(userRepository.save(userModel), HttpStatus.CREATED);
+            return new ResponseEntity<>(userService.save(userModel), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -42,14 +41,26 @@ public class UserController {
 
     @PutMapping("")
     public ResponseEntity<?> put(@RequestBody UserModel userModel) {
-        Optional<UserModel> userToEdit = userRepository.findById(userModel.getId());
-
-        if(userToEdit.isPresent()) {
-            userRepository.save(userModel);
-            return new ResponseEntity<>(userModel, HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(userService.update(userModel), HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
 
     }
-    
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<?> delete(@PathVariable long id) {
+        try {
+            userService.deleteById(id);
+            return new ResponseEntity<>("Usuário removido com sucesso", HttpStatus.OK);
+        } catch (EmptyResultDataAccessException e) {
+            return new ResponseEntity<>("Não foi possível localizar o usuário.", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
 }
