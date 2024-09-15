@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SaleDTO {
     private long userId;
-    List<ProductDTO> items;
+    private List<ProductDTO> items;
 }
