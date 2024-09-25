@@ -39,4 +39,6 @@ public class SaleModel {
     @OneToMany(mappedBy = "sale", fetch = FetchType.LAZY)
     private List<ItemSaleModel> items;
 
+    
+
 }

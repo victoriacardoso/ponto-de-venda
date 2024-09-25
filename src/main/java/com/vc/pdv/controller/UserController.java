@@ -1,14 +1,17 @@
 package com.vc.pdv.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.vc.pdv.model.UserModel;
+import com.vc.pdv.dto.ResponseDTO;
+import com.vc.pdv.dto.UserDTO;
+import com.vc.pdv.exceptions.NoItemException;
 import com.vc.pdv.services.UserService;
+
+import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,21 +33,26 @@ public class UserController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> post(@RequestBody UserModel userModel) {
+    public ResponseEntity<?> post(@Valid @RequestBody UserDTO user) {
         try {
-            userModel.setEnabled(true);
-            return new ResponseEntity<>(userService.save(userModel), HttpStatus.CREATED);
+            user.setEnabled(true);
+            return new ResponseEntity<>(userService.save(user),
+                    HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseDTO<>(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("")
-    public ResponseEntity<?> put(@RequestBody UserModel userModel) {
+    public ResponseEntity<?> put(@RequestBody UserDTO userDTO) {
         try {
-            return new ResponseEntity<>(userService.update(userModel), HttpStatus.OK);
+            return new ResponseEntity<>(userService.update(userDTO), HttpStatus.OK);
+        } catch (NoItemException e) {
+            return new ResponseEntity<>(
+                    new ResponseDTO<>(e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            return new ResponseEntity<>(
+                    new ResponseDTO<>(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -53,14 +61,13 @@ public class UserController {
     public ResponseEntity<?> delete(@PathVariable long id) {
         try {
             userService.deleteById(id);
-            return new ResponseEntity<>("Usuário removido com sucesso", HttpStatus.OK);
-        } catch (EmptyResultDataAccessException e) {
-            return new ResponseEntity<>("Não foi possível localizar o usuário.", HttpStatus.INTERNAL_SERVER_ERROR);
-
+            return new ResponseEntity<>(new ResponseDTO<>("Usuário removido com sucesso"), HttpStatus.OK);
+        } catch (NoItemException e) {
+            return new ResponseEntity<>(new ResponseDTO<>("Não foi possível localizar o usuário."),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseDTO<>(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
-
 }

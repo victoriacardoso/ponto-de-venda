@@ -1,5 +1,6 @@
 package com.vc.pdv.model;
 
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,4 +31,5 @@ public class ItemSaleModel {
     @ManyToOne
     @JoinColumn(name = "sale_id", nullable = false)
     private SaleModel sale;
+
 }
